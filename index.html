@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Ruta de la Optimización — Juan José Piragauta Aranguren</title>
+<style>
+  :root{
+    --bg-deep:#080b14;
+    --bg-panel:#101627;
+    --bg-panel-2:#161f36;
+    --line:#26314f;
+    --cyan:#33e0ff;
+    --cyan-dim:#1a8ba3;
+    --gold:#ffb238;
+    --danger:#ff4d5e;
+    --ok:#2ed573;
+    --text:#e8ecf7;
+    --text-dim:#8b93b0;
+    --road:#1b1f2a;
+    --road-edge:#2b3145;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; overscroll-behavior:none;}
+  body{
+    margin:0;
+    background:radial-gradient(ellipse at top, #101a30 0%, var(--bg-deep) 60%);
+    color:var(--text);
+    font-family:'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    overflow:hidden;
+    position:fixed; inset:0;
+    -webkit-user-select:none; user-select:none;
+    touch-action:manipulation;
+  }
+  .num{font-family:'Consolas','Courier New',monospace;}
+  .screen{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    flex-direction:column;
+    padding:24px;
+    overflow-y:auto;
+  }
+  .screen.active{display:flex;}
+
+  /* ---------- MENU ---------- */
+  #screen-menu .badge{
+    letter-spacing:2px; color:var(--cyan); font-size:13px; margin-bottom:6px;
+  }
+  #screen-menu h1{
+    font-size:clamp(32px,6vw,56px);
+    margin:0; text-align:center;
+    background:linear-gradient(90deg,var(--cyan),var(--gold));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    letter-spacing:1px;
+  }
+  #screen-menu h2{
+    margin:6px 0 0; font-weight:400; font-size:clamp(15px,2.4vw,20px); color:var(--text-dim);
+    text-align:center;
+  }
+  .author-card{
+    margin-top:26px; padding:16px 26px; border:1px solid var(--line);
+    border-radius:10px; background:var(--bg-panel); text-align:center;
+  }
+  .author-card .name{font-size:18px; font-weight:600; color:var(--text);}
+  .author-card .role{font-size:13px; color:var(--text-dim); margin-top:4px;}
+  .author-card .topics{margin-top:8px; font-size:13px; color:var(--gold);}
+  .desc{
+    max-width:560px; text-align:center; color:var(--text-dim);
+    margin-top:20px; line-height:1.6; font-size:15px;
+  }
+  .btn{
+    cursor:pointer; border:none; border-radius:8px;
+    font-size:16px; font-weight:600; padding:14px 30px;
+    color:#04121a; background:linear-gradient(90deg,var(--cyan),#5be8ff);
+    box-shadow:0 0 0 rgba(51,224,255,0);
+    transition:transform .12s ease, box-shadow .2s ease;
+  }
+  .btn:hover{transform:translateY(-2px); box-shadow:0 6px 22px rgba(51,224,255,.35);}
+  .btn:active{transform:translateY(0);}
+  .btn.secondary{
+    background:transparent; color:var(--text); border:1px solid var(--line);
+  }
+  .btn.secondary:hover{border-color:var(--cyan); box-shadow:none;}
+  .btn.danger{background:linear-gradient(90deg,#ff6b6b,var(--danger)); color:#210404;}
+  .btn.gold{background:linear-gradient(90deg,var(--gold),#ffd27a); color:#241400;}
+  .btn:disabled{opacity:.4; cursor:not-allowed; transform:none; box-shadow:none;}
+  .row{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:22px;}
+
+  /* ---------- NAME INPUT ---------- */
+  .card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:14px;
+    padding:32px 36px; max-width:420px; width:100%; text-align:center;
+  }
+  .card h3{margin-top:0; font-size:20px;}
+  .card input{
+    width:100%; padding:12px 14px; border-radius:8px; border:1px solid var(--line);
+    background:var(--bg-deep); color:var(--text); font-size:16px; margin:14px 0;
+  }
+  .card input:focus{outline:none; border-color:var(--cyan);}
+  .error-msg{color:var(--danger); font-size:13px; min-height:18px;}
+
+  /* ---------- INSTRUCTIONS ---------- */
+  .instructions-wrap{
+    max-width:720px; width:100%; max-height:88vh; overflow:auto;
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:14px; padding:28px 32px;
+  }
+  .instructions-wrap h3{color:var(--cyan); margin-bottom:8px; font-size:15px; letter-spacing:.5px;}
+  .instructions-wrap p, .instructions-wrap li{color:var(--text-dim); font-size:14px; line-height:1.6;}
+  .instructions-wrap ul{margin:4px 0 0 18px; padding:0;}
+  .key{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:34px; height:30px; padding:0 8px; margin-right:8px;
+    background:var(--bg-deep); border:1px solid var(--line); border-radius:6px;
+    font-family:monospace; color:var(--gold); font-weight:700;
+  }
+  .stat-pair{display:flex; gap:14px; margin:10px 0;}
+  .stat-chip{
+    flex:1; background:var(--bg-deep); border:1px solid var(--line); border-radius:8px;
+    padding:10px 12px; text-align:center;
+  }
+  .stat-chip .v{font-size:20px; font-weight:700; color:var(--gold);}
+  .stat-chip .l{font-size:11px; color:var(--text-dim); letter-spacing:.5px;}
+  .topics-grid{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;}
+  .topic-pill{
+    font-size:12px; background:rgba(51,224,255,.08); border:1px solid var(--cyan-dim);
+    color:var(--cyan); padding:4px 10px; border-radius:20px;
+  }
+
+  /* ---------- GAME ---------- */
+  #screen-game{padding:0; align-items:stretch; justify-content:stretch;}
+  .game-wrap{
+    position:relative; width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #gameCanvas{
+    background:var(--road); border-radius:6px; max-width:100%; max-height:100%;
+    box-shadow:0 0 60px rgba(51,224,255,.06);
+  }
+  .hud{
+    position:absolute; top:10px; left:10px; right:10px;
+    display:flex; justify-content:space-between; align-items:flex-start;
+    gap:8px; pointer-events:none; flex-wrap:wrap;
+  }
+  .hud-group{
+    display:flex; gap:8px; flex-wrap:wrap;
+  }
+  .hud-chip{
+    background:rgba(16,22,39,.88); border:1px solid var(--line); border-radius:8px;
+    padding:6px 12px; font-size:13px; display:flex; align-items:center; gap:6px;
+    pointer-events:auto;
+  }
+  .hud-chip b{color:var(--gold); font-family:monospace;}
+  #hud-lives{color:var(--danger);}
+  #hud-lives .lost{opacity:.25;}
+  .pause-btn{
+    pointer-events:auto; cursor:pointer; background:rgba(16,22,39,.88);
+    border:1px solid var(--line); color:var(--text); border-radius:8px;
+    padding:6px 12px; font-size:13px;
+  }
+  .progress-bar-wrap{
+    position:absolute; left:10px; right:10px; bottom:10px;
+    display:flex; flex-direction:column; gap:4px; pointer-events:none;
+  }
+  .progress-track{
+    height:10px; border-radius:6px; background:rgba(16,22,39,.8); border:1px solid var(--line);
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; background:linear-gradient(90deg,var(--cyan),var(--gold)); width:0%;
+    transition:width .3s ease;
+  }
+  .route-map{
+    display:flex; font-size:10px; color:var(--text-dim); justify-content:space-between;
+    background:rgba(16,22,39,.7); border-radius:6px; padding:4px 8px;
+  }
+  .route-map span.on{color:var(--gold); font-weight:700;}
+  .mini-formula{
+    position:absolute; top:64px; right:10px; font-family:monospace;
+    background:rgba(16,22,39,.7); border:1px solid var(--cyan-dim); color:var(--cyan);
+    padding:6px 10px; border-radius:8px; font-size:14px; pointer-events:none;
+  }
+  .touch-controls{
+    position:absolute; left:0; right:0; bottom:0; top:0;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    padding:0 14px 14px; pointer-events:none; z-index:30;
+  }
+  .touch-btn{
+    pointer-events:auto; cursor:pointer;
+    width:84px; height:84px; border-radius:50%;
+    background:rgba(16,22,39,.55); border:2px solid var(--cyan-dim);
+    color:var(--cyan); font-size:34px; line-height:1;
+    display:flex; align-items:center; justify-content:center;
+    -webkit-user-select:none; user-select:none; touch-action:none;
+    box-shadow:0 0 18px rgba(51,224,255,.12);
+  }
+  .touch-btn:active{
+    background:rgba(51,224,255,.22); border-color:var(--cyan);
+    transform:scale(0.94);
+  }
+  .floater{
+    position:absolute; color:rgba(139,147,176,.35); font-family:monospace;
+    pointer-events:none; font-size:13px;
+  }
+  .toast{
+    position:absolute; left:50%; transform:translateX(-50%);
+    top:90px; font-weight:800; font-size:22px; opacity:0; pointer-events:none;
+    text-shadow:0 2px 10px rgba(0,0,0,.6);
+    transition:opacity .2s ease, top .5s ease;
+  }
+  .toast.show{opacity:1; top:70px;}
+  .toast.plus{color:var(--ok);}
+  .toast.minus{color:var(--danger);}
+  .toast.streak{color:var(--gold);}
+
+  /* ---------- MODALS ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background:rgba(4,6,12,.72);
+    display:none; align-items:center; justify-content:center; z-index:50; padding:16px;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal-box{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:16px;
+    max-width:560px; width:100%; max-height:90vh; overflow:auto; padding:26px 28px;
+  }
+  .modal-head{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:6px; flex-wrap:wrap; gap:6px;
+  }
+  .modal-head .title{color:var(--cyan); font-weight:700; font-size:15px; letter-spacing:.5px;}
+  .modal-head .qnum{color:var(--text-dim); font-size:13px;}
+  .diff-tag{
+    font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid var(--line);
+  }
+  .diff-Básica{color:var(--ok); border-color:var(--ok);}
+  .diff-Intermedia{color:var(--gold); border-color:var(--gold);}
+  .diff-Alta{color:var(--danger); border-color:var(--danger);}
+  .diff-Avanzada{color:#c07bff; border-color:#c07bff;}
+  .topic-tag{font-size:12px; color:var(--text-dim); margin-top:2px;}
+  .q-text{font-size:17px; line-height:1.5; margin:16px 0 18px; font-weight:600;}
+  .options{display:flex; flex-direction:column; gap:10px;}
+  .opt-btn{
+    text-align:left; cursor:pointer; padding:13px 16px; border-radius:10px;
+    border:1px solid var(--line); background:var(--bg-deep); color:var(--text);
+    font-size:14.5px; transition:border-color .15s, background .15s;
+  }
+  .opt-btn:hover{border-color:var(--cyan);}
+  .opt-btn.correct{border-color:var(--ok); background:rgba(46,213,115,.12);}
+  .opt-btn.wrong{border-color:var(--danger); background:rgba(255,77,94,.12);}
+  .opt-btn:disabled{cursor:default;}
+  .open-answer-input{
+    width:100%; padding:13px 16px; border-radius:10px; border:1px solid var(--line);
+    background:var(--bg-deep); color:var(--text); font-size:16px;
+  }
+  .open-answer-input:focus{outline:none; border-color:var(--cyan);}
+  .fb-header{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .fb-icon{font-size:30px;}
+  .fb-title.ok{color:var(--ok);}
+  .fb-title.bad{color:var(--danger);}
+  .fb-delta{font-family:monospace; font-size:14px; color:var(--text-dim);}
+  .explain-box{
+    background:var(--bg-deep); border:1px solid var(--line); border-radius:10px;
+    padding:14px 16px; margin-top:10px; font-size:14px; line-height:1.6; color:var(--text-dim);
+  }
+  .explain-box .concept{color:var(--gold); font-weight:700; font-size:13px; display:block; margin-bottom:6px;}
+  .correct-answer-line{color:var(--ok); font-weight:600; margin-bottom:6px; font-size:14px;}
+
+  /* ---------- RESULTS ---------- */
+  .results-card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:16px;
+    max-width:620px; width:100%; max-height:92vh; overflow:auto; padding:30px 32px;
+  }
+  .results-card h2{text-align:center; margin:0 0 2px; color:var(--gold); letter-spacing:1px;}
+  .results-sub{text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:18px;}
+  .stat-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px;}
+  .stat-box{
+    background:var(--bg-deep); border:1px solid var(--line); border-radius:10px;
+    padding:12px; text-align:center;
+  }
+  .stat-box .v{font-family:monospace; font-size:20px; color:var(--cyan); font-weight:700;}
+  .stat-box .l{font-size:11px; color:var(--text-dim); margin-top:2px;}
+  .topic-row{margin-bottom:10px;}
+  .topic-row .lab{display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;}
+  .topic-bar-track{height:8px; border-radius:6px; background:var(--bg-deep); border:1px solid var(--line); overflow:hidden;}
+  .topic-bar-fill{height:100%; background:linear-gradient(90deg,var(--cyan),var(--gold));}
+  .perf-msg{
+    margin-top:16px; padding:14px 16px; border-radius:10px; font-size:14px; line-height:1.6;
+    background:rgba(51,224,255,.06); border:1px solid var(--cyan-dim); color:var(--text);
+  }
+  .status-pill{
+    display:inline-block; padding:4px 14px; border-radius:20px; font-weight:700; font-size:13px;
+    margin-bottom:4px;
+  }
+  .status-victoria{background:rgba(46,213,115,.15); color:var(--ok); border:1px solid var(--ok);}
+  .status-derrota{background:rgba(255,77,94,.15); color:var(--danger); border:1px solid var(--danger);}
+
+  /* ---------- KNOWLEDGE CENTER ---------- */
+  .kc-wrap{max-width:820px; width:100%; max-height:92vh; overflow:auto;}
+  .kc-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin-top:16px;}
+  .kc-card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:12px; padding:16px;
+  }
+  .kc-card h4{margin:0 0 8px; color:var(--cyan); font-size:14.5px;}
+  .kc-card p{margin:0; font-size:13px; color:var(--text-dim); line-height:1.55;}
+
+  /* ---------- PAUSE ---------- */
+  .pause-box{text-align:center;}
+  .pause-box h3{margin-top:0;}
+
+  .footer-note{margin-top:18px; font-size:12px; color:var(--text-dim); text-align:center;}
+  .sound-toggle{
+    position:fixed; bottom:14px; right:14px; z-index:40; cursor:pointer;
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:20px;
+    padding:8px 14px; font-size:13px; color:var(--text);
+  }
+
+  @media (max-width:520px){
+    .hud-chip{ font-size:11.5px; padding:5px 8px; }
+    .pause-btn{ font-size:11.5px; padding:5px 8px; }
+    .mini-formula{ top:58px; font-size:12px; padding:4px 8px; }
+    .touch-btn{ width:72px; height:72px; font-size:28px; }
+    .sound-toggle{ bottom:8px; right:8px; padding:6px 10px; font-size:11px; }
+    .card, .instructions-wrap, .results-card, .kc-wrap{ padding:20px 16px; }
+    .stat-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<button class="sound-toggle" id="soundToggle">🔊 Sonido ON</button>
+
+<!-- ================= MENU ================= -->
+<div class="screen active" id="screen-menu">
+  <div class="badge">PROYECTO ACADÉMICO — MATEMÁTICAS Y ECONOMÍA</div>
+  <h1>RUTA DE LA OPTIMIZACIÓN</h1>
+  <h2>Una carrera entre las matemáticas y la economía</h2>
+  <div class="author-card">
+    <div class="name">JUAN JOSÉ PIRAGAUTA ARANGUREN</div>
+    <div class="role">Optimización de varias variables · Multiplicadores de Lagrange</div>
+    <div class="topics">15 desafíos · 4 vidas · 100 puntos posibles</div>
+  </div>
+  <p class="desc">Pon a prueba tus conocimientos de optimización matemática y economía mientras conduces por una pista llena de desafíos.</p>
+  <div class="row">
+    <button class="btn" id="btnGoName">INICIAR JUEGO</button>
+    <button class="btn secondary" id="btnOpenKnowledgeFromMenu">CENTRO DE CONOCIMIENTO</button>
+  </div>
+</div>
+
+<!-- ================= NAME INPUT ================= -->
+<div class="screen" id="screen-name">
+  <div class="card">
+    <h3>Ingresa el nombre del jugador</h3>
+    <input type="text" id="playerNameInput" placeholder="Tu nombre" maxlength="24" autofocus>
+    <div class="error-msg" id="nameError"></div>
+    <button class="btn" id="btnStartRace" style="width:100%;">COMENZAR CARRERA</button>
+  </div>
+</div>
+
+<!-- ================= INSTRUCTIONS ================= -->
+<div class="screen" id="screen-instructions">
+  <div class="instructions-wrap">
+    <h3>CONTROLES</h3>
+    <p><span class="key">←</span>Mover a la izquierda &nbsp; <span class="key">→</span>Mover a la derecha. El automóvil avanza automáticamente; no hay tecla para frenar.</p>
+
+    <h3 style="margin-top:18px;">OBJETIVO</h3>
+    <p>Esquiva vehículos y obstáculos. Cuando el automóvil choque, aparecerá una pregunta matemática: si respondes correctamente ganas puntos y sigues intacto; si fallas, pierdes una vida.</p>
+
+    <div class="stat-pair">
+      <div class="stat-chip"><div class="v">4 ❤️</div><div class="l">VIDAS INICIALES</div></div>
+      <div class="stat-chip"><div class="v">100 ⭐</div><div class="l">PUNTOS MÁXIMOS</div></div>
+      <div class="stat-chip"><div class="v">15 🧩</div><div class="l">DESAFÍOS</div></div>
+    </div>
+
+    <h3 style="margin-top:14px;">RECOMPENSA POR RACHAS</h3>
+    <p>Si respondes correctamente 3 preguntas consecutivas, recuperas 1 vida (siempre que no superes el máximo de 4).</p>
+
+    <h3 style="margin-top:14px;">TEMAS DE LAS PREGUNTAS</h3>
+    <div class="topics-grid">
+      <span class="topic-pill">Optimización de varias variables</span>
+      <span class="topic-pill">Derivadas parciales</span>
+      <span class="topic-pill">Puntos críticos</span>
+      <span class="topic-pill">Hessiano</span>
+      <span class="topic-pill">Multiplicadores de Lagrange</span>
+      <span class="topic-pill">Restricciones</span>
+      <span class="topic-pill">Maximización de utilidad</span>
+      <span class="topic-pill">Minimización de costos</span>
+      <span class="topic-pill">Optimización de producción</span>
+    </div>
+    <div class="row">
+      <button class="btn" id="btnStartPlaying">COMENZAR A CONDUCIR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= GAME ================= -->
+<div class="screen" id="screen-game">
+  <div class="game-wrap">
+    <canvas id="gameCanvas" width="900" height="580"></canvas>
+    <div class="hud">
+      <div class="hud-group">
+        <div class="hud-chip" id="hud-lives">❤️❤️❤️❤️</div>
+        <div class="hud-chip">⭐ <b><span id="hud-score">0</span>/100</b></div>
+        <div class="hud-chip">⏱ <b id="hud-time">00:00</b></div>
+      </div>
+      <div class="hud-group">
+        <div class="hud-chip">🏁 NIVEL <b id="hud-level">1</b>/5</div>
+        <div class="hud-chip">🔥 RACHA <b id="hud-streak">0</b></div>
+        <div class="pause-btn" id="btnPause">⏸ PAUSA</div>
+      </div>
+    </div>
+    <div class="mini-formula" id="miniFormula">∂f/∂x</div>
+    <div class="toast" id="toast"></div>
+    <div class="progress-bar-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="route-map" id="routeMap"></div>
+    </div>
+    <div class="touch-controls">
+      <button class="touch-btn" id="touchLeft" aria-label="Mover a la izquierda">◀</button>
+      <button class="touch-btn" id="touchRight" aria-label="Mover a la derecha">▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= QUESTION MODAL ================= -->
+<div class="modal-overlay" id="modalQuestion">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div class="title">DESAFÍO MATEMÁTICO</div>
+        <div class="topic-tag" id="qTopic">Tema</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="qnum" id="qNum">Pregunta 1/15</div>
+        <span class="diff-tag" id="qDiff">Básica</span>
+      </div>
+    </div>
+    <div class="q-text" id="qText">...</div>
+    <div class="options" id="qOptions"></div>
+  </div>
+</div>
+
+<!-- ================= FEEDBACK MODAL ================= -->
+<div class="modal-overlay" id="modalFeedback">
+  <div class="modal-box">
+    <div class="fb-header">
+      <div class="fb-icon" id="fbIcon">✓</div>
+      <div>
+        <div class="fb-title" id="fbTitle">RESPUESTA CORRECTA</div>
+        <div class="fb-delta" id="fbDelta">+5 PUNTOS</div>
+      </div>
+    </div>
+    <div id="fbCorrectLine"></div>
+    <div class="explain-box">
+      <span class="concept" id="fbConcept">Concepto</span>
+      <span id="fbExplanation">Explicación...</span>
+    </div>
+    <div class="row">
+      <button class="btn" id="btnContinueRace">CONTINUAR CARRERA</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= LEVEL UP MODAL ================= -->
+<div class="modal-overlay" id="modalLevelUp">
+  <div class="modal-box" style="text-align:center;">
+    <h2 style="color:var(--gold); margin-top:0;">¡NIVEL SUPERADO!</h2>
+    <p id="levelUpText" style="color:var(--text-dim);">Avanzas al siguiente nivel de la ruta.</p>
+    <div class="row"><button class="btn" id="btnLevelUpContinue">CONTINUAR</button></div>
+  </div>
+</div>
+
+<!-- ================= PAUSE MODAL ================= -->
+<div class="modal-overlay" id="modalPause">
+  <div class="modal-box pause-box">
+    <h3>PAUSA</h3>
+    <p style="color:var(--text-dim); font-size:13px;">La carrera está congelada.</p>
+    <div class="row" style="flex-direction:column; align-items:stretch;">
+      <button class="btn" id="btnResume">CONTINUAR</button>
+      <button class="btn secondary" id="btnRestartFromPause">REINICIAR PARTIDA</button>
+      <button class="btn secondary" id="btnExitToMenu">SALIR AL MENÚ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= RESULTS ================= -->
+<div class="screen" id="screen-results">
+  <div class="results-card">
+    <div style="text-align:center;"><span class="status-pill" id="resultStatusPill">VICTORIA</span></div>
+    <h2>RESULTADOS DE LA CARRERA</h2>
+    <div class="results-sub" id="resultPlayerLine">Jugador: —</div>
+    <div class="results-sub" style="margin-top:-12px; font-size:11px; letter-spacing:.5px; color:var(--cyan);">JUEGO CREADO POR JUAN JOSÉ PIRAGAUTA ARANGUREN</div>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="v" id="rScore">0/100</div><div class="l">PUNTOS</div></div>
+      <div class="stat-box"><div class="v" id="rAnswered">0/15</div><div class="l">RESPONDIDAS</div></div>
+      <div class="stat-box"><div class="v" id="rCorrect">0</div><div class="l">CORRECTAS</div></div>
+      <div class="stat-box"><div class="v" id="rWrong">0</div><div class="l">ERRORES</div></div>
+      <div class="stat-box"><div class="v" id="rLives">0/4</div><div class="l">VIDAS RESTANTES</div></div>
+      <div class="stat-box"><div class="v" id="rStreak">0</div><div class="l">RACHA MÁXIMA</div></div>
+      <div class="stat-box"><div class="v" id="rTime">00:00</div><div class="l">TIEMPO TOTAL</div></div>
+      <div class="stat-box"><div class="v" id="rLevel">1/5</div><div class="l">NIVEL ALCANZADO</div></div>
+      <div class="stat-box"><div class="v" id="rAccuracy">0%</div><div class="l">PRECISIÓN</div></div>
+    </div>
+    <h4 style="margin-bottom:8px; color:var(--text-dim); font-size:13px; letter-spacing:.5px;">DESEMPEÑO POR TEMA</h4>
+    <div id="topicBreakdown"></div>
+    <div class="perf-msg" id="perfMessage"></div>
+    <div class="row">
+      <button class="btn" id="btnPlayAgain">JUGAR DE NUEVO</button>
+      <button class="btn secondary" id="btnBackToMenu">VOLVER AL MENÚ</button>
+      <button class="btn gold" id="btnOpenKnowledgeFromResults">VER CONCEPTOS</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= KNOWLEDGE CENTER ================= -->
+<div class="screen" id="screen-knowledge">
+  <div class="kc-wrap">
+    <h2 style="text-align:center; color:var(--gold);">CENTRO DE CONOCIMIENTO</h2>
+    <p style="text-align:center; color:var(--text-dim); font-size:13px;">Conceptos de optimización de varias variables y economía</p>
+    <div class="kc-grid" id="kcGrid"></div>
+    <div class="row"><button class="btn secondary" id="btnCloseKnowledge">VOLVER</button></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   RUTA DE LA OPTIMIZACIÓN — motor del juego
+   ============================================================ */
+
+/* ---------- ESTADOS DEL JUEGO ---------- */
+const STATE = {
+  MENU:'MENU', NAME_INPUT:'NAME_INPUT', INSTRUCTIONS:'INSTRUCTIONS',
+  PLAYING:'PLAYING', QUESTION:'QUESTION', FEEDBACK:'FEEDBACK',
+  PAUSED:'PAUSED', LEVEL_UP:'LEVEL_UP', GAME_OVER:'GAME_OVER',
+  VICTORY:'VICTORY', RESULTS:'RESULTS', KNOWLEDGE_CENTER:'KNOWLEDGE_CENTER'
+};
+let currentState = STATE.MENU;
+
+/* ---------- ESTADO DEL JUEGO (sección 40) ---------- */
+let playerName = '';
+let score = 0;
+let lives = 4;
+let streak = 0;          // hacia la próxima recompensa (se reinicia al otorgar vida o fallar)
+let rawStreak = 0;        // racha real, solo se reinicia al fallar (para racha máxima)
+let maxStreak = 0;
+let questionIndex = 0;    // 0..15
+let level = 1;            // 1..5
+let gameTime = 0;         // segundos
+let gameRunning = false;
+let gamePaused = false;
+let correctAnswers = 0;
+let wrongAnswers = 0;
+let soundOn = true;
+let activeQuestion = null;
+let lastCollisionObstacleId = null;
+let answerLocked = false;
+
+const topicStats = {
+  'Optimización de varias variables': {correct:0,total:0},
+  'Multiplicadores de Lagrange': {correct:0,total:0},
+  'Economía': {correct:0,total:0}
+};
+
+/* ---------- BANCO DE 15 PREGUNTAS ---------- */
+const QUESTIONS = [
+{ id:1, level:1, topic:'Optimización de varias variables', topicGroup:'Optimización de varias variables', difficulty:'Básica', type:'mc',
+  question:'¿Qué es un punto crítico de una función f(x,y)?',
+  options:['Un punto donde f(x,y) no está definida','Un punto donde x = y','Un punto donde el gradiente ∇f se anula (o no existe) y es candidato a máximo o mínimo','Un punto donde la segunda derivada siempre es positiva'],
+  correct:2, points:5,
+  explanation:'Un punto crítico es aquel donde ∇f(x,y) = (fx, fy) = (0,0), o donde las derivadas parciales no existen. Estos puntos son los únicos candidatos, dentro del dominio, a ser máximos o mínimos locales.',
+  concept:'Punto crítico' },
+
+{ id:2, level:1, topic:'Optimización de varias variables', topicGroup:'Optimización de varias variables', difficulty:'Básica', type:'mc',
+  question:'Dada f(x,y) = 3x²y + 2y³, ¿cuál es ∂f/∂x?',
+  options:['3x² + 6y²','6x + 2y³','3x²y','6xy'],
+  correct:3, points:5,
+  explanation:'Al derivar respecto a x tratando y como constante: ∂/∂x(3x²y) = 6xy, y ∂/∂x(2y³) = 0. Por lo tanto, ∂f/∂x = 6xy.',
+  concept:'Derivadas parciales' },
+
+{ id:3, level:1, topic:'Optimización de varias variables', topicGroup:'Optimización de varias variables', difficulty:'Básica', type:'mc',
+  question:'¿Cuál es la condición necesaria de primer orden para un extremo interior de f(x,y)?',
+  options:['fx = 0 y fy = 0 simultáneamente','f(x,y) = 0','fxx = 0','x = 0 y y = 0'],
+  correct:0, points:5,
+  explanation:'En un punto extremo interior (máximo o mínimo local), ambas derivadas parciales deben anularse al mismo tiempo: fx(x,y) = 0 y fy(x,y) = 0.',
+  concept:'Condiciones de primer orden' },
+
+{ id:4, level:2, topic:'Puntos críticos', topicGroup:'Optimización de varias variables', difficulty:'Intermedia', type:'open',
+  question:'Para f(x,y) = x² + y² − 4x − 6y, calcula su punto crítico (x, y). Escribe la respuesta en el formato "x,y" (dos números separados por una coma).',
+  answerNumbers:[2,3], points:6,
+  explanation:'fx = 2x − 4 = 0 ⟹ x = 2. fy = 2y − 6 = 0 ⟹ y = 3. El único punto crítico es (2, 3).',
+  concept:'Puntos críticos', correctDisplay:'(2, 3)' },
+
+{ id:5, level:2, topic:'Gradiente', topicGroup:'Optimización de varias variables', difficulty:'Intermedia', type:'mc',
+  question:'Para f(x,y) = 3x²y − y³, ¿cuál es el gradiente ∇f?',
+  options:['(3x², −3y²)','(6xy, −3y²)','(6xy, 3x² − 3y²)','(6x, −3y)'],
+  correct:2, points:6,
+  explanation:'∂f/∂x = 6xy y ∂f/∂y = 3x² − 3y². Por lo tanto ∇f = (6xy, 3x² − 3y²).',
+  concept:'Gradiente' },
+
+{ id:6, level:2, topic:'Determinante Hessiano', topicGroup:'Optimización de varias variables', difficulty:'Intermedia', type:'mc',
+  question:'Para f(x,y) = x² + 2xy + 3y², calcula el valor del determinante Hessiano D = fxx·fyy − (fxy)².',
+  options:['8','10','16','−4'],
+  correct:0, points:6,
+  explanation:'fxx = 2, fyy = 6, fxy = 2. D = fxx·fyy − (fxy)² = (2)(6) − (2)² = 12 − 4 = 8. Como D > 0 y fxx > 0, el punto crítico es un mínimo local.',
+  concept:'Matriz Hessiana (cálculo del determinante)' },
+
+{ id:7, level:3, topic:'Clasificación con el Hessiano', topicGroup:'Optimización de varias variables', difficulty:'Alta', type:'open',
+  question:'En un punto crítico se calcula fxx = 4, fyy = 6, fxy = 2. Calcula el valor numérico del determinante Hessiano D. Escribe solo el número.',
+  answerNumbers:[20], points:7,
+  explanation:'D = fxx·fyy − (fxy)² = (4)(6) − (2)² = 24 − 4 = 20. Como D > 0 y fxx > 0, el punto crítico es un mínimo local.',
+  concept:'Matriz Hessiana', correctDisplay:'D = 20 (mínimo local)' },
+
+{ id:8, level:3, topic:'Optimización de beneficios', topicGroup:'Economía', difficulty:'Alta', type:'mc',
+  question:'Una empresa tiene la función de beneficio π(x,y) = 40x + 30y − x² − y². ¿Cuáles son las condiciones de primer orden para hallar el máximo?',
+  options:['40x − 2 = 0 y 30y − 2 = 0','2x = 40 y 2y = 30, con la restricción x = y','x + y = 70','40 − 2x = 0 y 30 − 2y = 0'],
+  correct:3, points:7,
+  explanation:'Derivando: ∂π/∂x = 40 − 2x = 0 y ∂π/∂y = 30 − 2y = 0. Resolviendo se obtiene x = 20, y = 15, el punto de beneficio máximo.',
+  concept:'Optimización económica sin restricciones' },
+
+{ id:9, level:3, topic:'Punto crítico económico', topicGroup:'Economía', difficulty:'Alta', type:'open',
+  question:'Continuando con π(x,y) = 40x + 30y − x² − y², calcula el punto crítico (x*, y*). Escribe la respuesta en el formato "x,y" (dos números separados por una coma).',
+  answerNumbers:[20,15], points:7,
+  explanation:'De 40 − 2x = 0 se obtiene x = 20; de 30 − 2y = 0 se obtiene y = 15. El punto crítico es (20, 15); como fxx = −2 < 0, fyy = −2 < 0 y D = 4 > 0, es un máximo.',
+  concept:'Interpretación económica del punto crítico', correctDisplay:'(20, 15)' },
+
+{ id:10, level:4, topic:'Función de Lagrange', topicGroup:'Multiplicadores de Lagrange', difficulty:'Alta', type:'mc',
+  question:'Para maximizar f(x,y) sujeto a la restricción g(x,y) = c, ¿cuál es la función de Lagrange correcta?',
+  options:['L(x,y,λ) = f(x,y) · λ g(x,y)','L(x,y,λ) = g(x,y) + λ f(x,y)','L(x,y,λ) = f(x,y) + λ[c − g(x,y)]','L(x,y,λ) = f(x,y) − g(x,y)'],
+  correct:2, points:8,
+  explanation:'La función de Lagrange se construye sumando a la función objetivo el multiplicador λ por la diferencia entre la restricción y su valor: L = f(x,y) + λ[c − g(x,y)].',
+  concept:'Función de Lagrange' },
+
+{ id:11, level:4, topic:'Optimización con restricciones (Lagrange)', topicGroup:'Multiplicadores de Lagrange', difficulty:'Alta', type:'open',
+  question:'Maximiza f(x,y) = xy sujeta a la restricción x + y = 20, usando multiplicadores de Lagrange. Calcula el punto óptimo (x, y). Escribe la respuesta en el formato "x,y".',
+  answerNumbers:[10,10], points:8,
+  explanation:'L(x,y,λ) = xy + λ(20 − x − y). ∂L/∂x = y − λ = 0 ⟹ λ = y. ∂L/∂y = x − λ = 0 ⟹ λ = x. Por lo tanto x = y. Sustituyendo en la restricción: x + x = 20 ⟹ x = y = 10. El punto óptimo es (10, 10).',
+  concept:'Optimización con restricciones', correctDisplay:'(10, 10)' },
+
+{ id:12, level:4, topic:'Minimización con restricciones (Lagrange)', topicGroup:'Multiplicadores de Lagrange', difficulty:'Alta', type:'open',
+  question:'Minimiza C(x,y) = x² + y² sujeta a la restricción x + y = 10, usando multiplicadores de Lagrange. Calcula el punto óptimo (x, y). Escribe la respuesta en el formato "x,y".',
+  answerNumbers:[5,5], points:8,
+  explanation:'L(x,y,λ) = x² + y² + λ(10 − x − y). ∂L/∂x = 2x − λ = 0 ⟹ λ = 2x. ∂L/∂y = 2y − λ = 0 ⟹ λ = 2y. Por lo tanto x = y. Sustituyendo en la restricción: x + x = 10 ⟹ x = y = 5. El punto óptimo es (5, 5).',
+  concept:'Optimización con restricciones', correctDisplay:'(5, 5)' },
+
+{ id:13, level:5, topic:'Función de producción Cobb-Douglas', topicGroup:'Economía', difficulty:'Avanzada', type:'mc',
+  question:'Para la función de producción Cobb-Douglas Q(L,K) = L^0.5 K^0.5, ¿qué representa ∂Q/∂L?',
+  options:['El costo marginal del trabajo','El producto marginal del trabajo: cuánto aumenta la producción por una unidad adicional de L','La elasticidad total de la producción','El precio del trabajo'],
+  correct:1, points:7,
+  explanation:'∂Q/∂L es el producto marginal del trabajo (PML): mide cuánto aumenta la producción Q al añadir una unidad adicional de trabajo L, manteniendo K constante.',
+  concept:'Función de producción Cobb-Douglas' },
+
+{ id:14, level:5, topic:'Minimización de costos', topicGroup:'Economía', difficulty:'Avanzada', type:'mc',
+  question:'Una empresa minimiza C(L,K) = wL + rK sujeta a producir una cantidad fija Q0 = F(L,K). En el óptimo, la condición de Lagrange implica que:',
+  options:['L y K deben ser iguales','La relación de productividades marginales debe igualar la relación de precios de los factores: (∂F/∂L)/(∂F/∂K) = w/r','w debe ser igual a r','El costo total no depende de w ni r'],
+  correct:1, points:7,
+  explanation:'Al minimizar costos sujeto a una producción dada, ∇F = λ∇(wL + rK) implica que la razón de productividades marginales iguala la razón de precios de los insumos: (∂F/∂L)/(∂F/∂K) = w/r.',
+  concept:'Minimización de costos' },
+
+{ id:15, level:5, topic:'Interpretación de λ', topicGroup:'Economía', difficulty:'Avanzada', type:'mc',
+  question:'En un problema de optimización con restricciones, ¿cómo se interpreta económicamente el multiplicador de Lagrange λ?',
+  options:['Como el precio del bien x','Como el valor marginal (precio sombra): el cambio aproximado en el valor óptimo de f ante un pequeño cambio en la restricción c','Como la cantidad óptima de producción','Como el error del modelo'],
+  correct:1, points:8,
+  explanation:'λ mide, aproximadamente, cuánto cambiaría el valor óptimo de la función objetivo si la restricción c se relajara en una unidad. Por eso se le llama "precio sombra" o valor marginal de la restricción.',
+  concept:'Interpretación económica del multiplicador de Lagrange' }
+];
+
+let questionQueue = []; // orden de aplicación (mismo orden fijo: progresión pedagógica)
+
+/* ---------- CENTRO DE CONOCIMIENTO ---------- */
+const KNOWLEDGE = [
+ {t:'Optimización de varias variables', d:'Estudia cómo encontrar máximos y mínimos de funciones que dependen de dos o más variables, usando derivadas parciales.'},
+ {t:'Derivadas parciales', d:'Miden la tasa de cambio de una función respecto a una variable, manteniendo las demás constantes.'},
+ {t:'Gradiente', d:'El vector ∇f formado por todas las derivadas parciales de f; apunta en la dirección de mayor crecimiento de la función.'},
+ {t:'Punto crítico', d:'Punto donde el gradiente se anula (o no existe); es un candidato a máximo, mínimo o punto silla.'},
+ {t:'Hessiano', d:'Matriz de segundas derivadas parciales. Su determinante D = fxx·fyy − (fxy)² permite clasificar los puntos críticos.'},
+ {t:'Multiplicadores de Lagrange', d:'Método para optimizar una función sujeta a una restricción, mediante L = f + λ[c − g], buscando ∇f = λ∇g.'},
+ {t:'Interpretación económica de λ', d:'λ representa el precio sombra: el cambio aproximado en el óptimo ante un cambio marginal en la restricción.'},
+ {t:'Cobb-Douglas', d:'Función de producción Q = A·L^α·K^β, donde L es trabajo, K es capital, A la tecnología y α, β las elasticidades de los factores.'},
+ {t:'Maximización de utilidad', d:'El consumidor elige x, y para maximizar U(x,y) sujeto a su presupuesto, igualando la relación marginal de sustitución a la razón de precios.'},
+ {t:'Minimización de costos', d:'La empresa elige L, K para producir una cantidad dada al menor costo posible, igualando productividades marginales relativas a precios relativos.'}
+];
+
+/* ---------- UTILIDADES ---------- */
+function $(id){ return document.getElementById(id); }
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function fmtTime(s){
+  const m = Math.floor(s/60).toString().padStart(2,'0');
+  const sec = Math.floor(s%60).toString().padStart(2,'0');
+  return m+':'+sec;
+}
+
+/* ---------- AUDIO (Web Audio API, sin archivos externos) ---------- */
+let audioCtx = null;
+function ensureAudio(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx=null; } } }
+function playTone(freq, dur, type){
+  if(!soundOn) return;
+  ensureAudio();
+  if(!audioCtx) return;
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type || 'sine';
+  o.frequency.value = freq;
+  g.gain.value = 0.08;
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start();
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+  o.stop(audioCtx.currentTime + dur);
+}
+const SFX = {
+  point:()=>playTone(880,0.15,'triangle'),
+  error:()=>playTone(160,0.3,'sawtooth'),
+  collision:()=>playTone(220,0.12,'square'),
+  levelUp:()=>{ playTone(523,0.12,'triangle'); setTimeout(()=>playTone(784,0.18,'triangle'),120); },
+  victory:()=>{ [523,659,784,1046].forEach((f,i)=>setTimeout(()=>playTone(f,0.22,'triangle'), i*140)); },
+  gameOver:()=>{ playTone(300,0.25,'sawtooth'); setTimeout(()=>playTone(200,0.35,'sawtooth'),200); },
+  streak:()=>{ playTone(660,0.1,'triangle'); setTimeout(()=>playTone(990,0.18,'triangle'),100); }
+};
+
+/* ---------- NAVEGACIÓN DE PANTALLAS ---------- */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+/* ---------- MENÚ / NOMBRE / INSTRUCCIONES ---------- */
+$('btnGoName').onclick = ()=>{
+  ensureAudio();
+  if(audioCtx && audioCtx.state === 'suspended'){ audioCtx.resume(); } // desbloqueo de audio requerido por iOS Safari
+  currentState=STATE.NAME_INPUT; showScreen('screen-name'); $('playerNameInput').focus();
+};
+$('btnOpenKnowledgeFromMenu').onclick = ()=> openKnowledgeCenter('screen-menu');
+$('btnCloseKnowledge').onclick = ()=> closeKnowledgeCenter();
+$('btnOpenKnowledgeFromResults').onclick = ()=> openKnowledgeCenter('screen-results');
+
+let knowledgeReturnScreen = 'screen-menu';
+function openKnowledgeCenter(returnScreen){
+  knowledgeReturnScreen = returnScreen;
+  currentState = STATE.KNOWLEDGE_CENTER;
+  const grid = $('kcGrid');
+  grid.innerHTML = KNOWLEDGE.map(k=>`<div class="kc-card"><h4>${k.t}</h4><p>${k.d}</p></div>`).join('');
+  showScreen('screen-knowledge');
+}
+function closeKnowledgeCenter(){ showScreen(knowledgeReturnScreen); }
+
+$('btnStartRace').onclick = submitName;
+$('playerNameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submitName(); });
+function submitName(){
+  const val = $('playerNameInput').value.trim();
+  if(!val){ $('nameError').textContent = 'Por favor ingresa un nombre para continuar.'; return; }
+  playerName = val;
+  $('nameError').textContent='';
+  currentState = STATE.INSTRUCTIONS;
+  showScreen('screen-instructions');
+}
+$('btnStartPlaying').onclick = ()=>{ resetGame(); startGame(); };
+
+/* ---------- CONFIGURACIÓN DEL CANVAS ---------- */
+const canvas = $('gameCanvas');
+const ctx = canvas.getContext('2d');
+const CW = canvas.width, CH = canvas.height;
+const ROAD_LEFT = CW*0.22, ROAD_RIGHT = CW*0.78, ROAD_W = ROAD_RIGHT-ROAD_LEFT;
+const LANES = 3;
+function laneCenterX(i){ return ROAD_LEFT + ROAD_W*(i+0.5)/LANES; }
+
+const player = { w:46, h:78, x:CW/2, y:CH-110 };
+let playerLane = 1;
+let invulnerableUntil = 0;
+
+let obstacles = [];
+let obstacleIdSeq = 1;
+let spawnTimer = 0;
+let roadOffset = 0;
+let baseSpeed = 6.4;
+
+const OBSTACLE_TYPES = ['car','car','truck','cone','barrier','block'];
+const OBSTACLE_COLORS = ['#ff6b6b','#ffb238','#c07bff','#ff9f43'];
+
+const floaters = [
+  {sym:'∇f=λ∇g', x:0.06, y:0.18, sp:0.15},
+  {sym:'π=R−C', x:0.90, y:0.32, sp:0.11},
+  {sym:'$', x:0.08, y:0.62, sp:0.13},
+  {sym:'D=fxx·fyy−fxy²', x:0.88, y:0.75, sp:0.09},
+  {sym:'x, y, L, K', x:0.05, y:0.85, sp:0.1}
+];
+
+const LEVEL_FORMULAS = ['∂f/∂x','∇f = 0','D = fxx·fyy − (fxy)²','∇f = λ∇g','π = R − C'];
+const ROUTE_LABELS = ['SALIDA','FUNDAMENTOS','OPTIMIZACIÓN','HESSIANO','LAGRANGE','ECONOMÍA','META'];
+
+/* ---------- CONTROLES DE TECLADO (movimiento por carril, sin quedar entre carriles) ---------- */
+function moveLane(dir){
+  if(currentState !== STATE.PLAYING) return;
+  if(dir < 0) playerLane = Math.max(0, playerLane-1);
+  else playerLane = Math.min(LANES-1, playerLane+1);
+}
+window.addEventListener('keydown', e=>{
+  if(e.key==='ArrowLeft'){ e.preventDefault(); if(!e.repeat) moveLane(-1); }
+  if(e.key==='ArrowRight'){ e.preventDefault(); if(!e.repeat) moveLane(1); }
+  if(e.key==='Escape' && currentState===STATE.PLAYING){ togglePause(); }
+});
+
+/* ---------- CONTROLES TÁCTILES (iPhone / Safari / cualquier pantalla táctil) ---------- */
+function bindTouchButton(el, dir){
+  let fired = false;
+  const trigger = (e)=>{
+    e.preventDefault();
+    if(fired) return;
+    fired = true;
+    moveLane(dir);
+    setTimeout(()=>{ fired = false; }, 120); // evita doble disparo touchstart+click
+  };
+  el.addEventListener('touchstart', trigger, {passive:false});
+  el.addEventListener('mousedown', trigger);
+}
+bindTouchButton($('touchLeft'), -1);
+bindTouchButton($('touchRight'), 1);
+// Evita que un gesto de arrastre sobre los botones táctiles haga scroll en iOS
+document.querySelector('.touch-controls').addEventListener('touchmove', e=> e.preventDefault(), {passive:false});
+
+/* ---------- INICIO / REINICIO ---------- */
+function resetGame(){
+  score=0; lives=4; streak=0; rawStreak=0; maxStreak=0; questionIndex=0; level=1;
+  gameTime=0; correctAnswers=0; wrongAnswers=0; gameRunning=false; gamePaused=false;
+  obstacles=[]; obstacleIdSeq=1; spawnTimer=0; roadOffset=0; baseSpeed=6.4;
+  playerLane = 1; player.x = laneCenterX(1); invulnerableUntil = 0;
+  questionQueue = QUESTIONS.slice(); // orden pedagógico fijo (progresivo, no aleatorio de tema)
+  for(const k in topicStats){ topicStats[k].correct=0; topicStats[k].total=0; }
+  updateHUD();
+  renderRouteMap();
+}
+
+function startGame(){
+  currentState = STATE.PLAYING;
+  gameRunning = true; gamePaused = false;
+  spawnTimer = 1.0;
+  invulnerableUntil = 0.8;
+  showScreen('screen-game');
+  lastFrameTime = performance.now();
+  requestAnimationFrame(gameLoop);
+}
+
+/* ---------- BUCLE PRINCIPAL ---------- */
+let lastFrameTime = 0;
+function gameLoop(ts){
+  if(!gameRunning) return;
+  const dt = Math.min((ts - lastFrameTime)/1000, 0.05);
+  lastFrameTime = ts;
+  if(currentState===STATE.PLAYING){
+    updateGame(dt);
+  }
+  drawGame();
+  requestAnimationFrame(gameLoop);
+}
+
+function updateGame(dt){
+  gameTime += dt;
+  roadOffset += (baseSpeed + level*2.3) * dt * 60 * 0.06;
+
+  movePlayer(dt);
+  spawnObstacles(dt);
+
+  const speedPx = (baseSpeed + level*2.3) * dt * 60;
+  for(const o of obstacles){ o.y += speedPx; }
+  obstacles = obstacles.filter(o=> o.y < CH + 80);
+
+  checkCollisions();
+  updateHUD();
+}
+
+function movePlayer(dt){
+  const target = laneCenterX(playerLane);
+  const lerp = Math.min(1, dt*14);
+  player.x += (target - player.x) * lerp;
+}
+
+function spawnObstacles(dt){
+  spawnTimer -= dt;
+  if(spawnTimer <= 0){
+    const safeLane = Math.floor(Math.random()*LANES);
+    const howMany = Math.random() < 0.3 ? 1 : 2;
+    const lanesToUse = shuffle([0,1,2].filter(l=>l!==safeLane)).slice(0, howMany);
+    for(const laneIdx of lanesToUse){
+      const type = OBSTACLE_TYPES[Math.floor(Math.random()*OBSTACLE_TYPES.length)];
+      const color = OBSTACLE_COLORS[Math.floor(Math.random()*OBSTACLE_COLORS.length)];
+      const w = (type==='truck'? 58 : type==='cone'? 30 : type==='barrier'? 70 : 46) * 1.12;
+      const h = type==='truck'? 90 : type==='cone'? 34 : type==='barrier'? 26 : 70;
+      obstacles.push({ id:obstacleIdSeq++, lane:laneIdx, x:laneCenterX(laneIdx), y:-100-Math.random()*60, w, h, type, color });
+    }
+    const base = Math.max(0.24, 0.78 - level*0.11);
+    spawnTimer = base + Math.random()*0.22;
+  }
+}
+
+function checkCollisions(){
+  if(gameTime < invulnerableUntil) return; // inmunidad temporal tras responder una pregunta
+  const pTop = player.y - player.h/2, pBottom = player.y + player.h/2;
+  for(const o of obstacles){
+    const oTop = o.y - o.h/2, oBottom = o.y + o.h/2;
+    const sameLane = o.lane === playerLane;
+    const vOverlap = pTop < oBottom && pBottom > oTop;
+    if(sameLane && vOverlap){
+      obstacles = obstacles.filter(x=>x.id!==o.id);
+      SFX.collision();
+      triggerQuestion();
+      break;
+    }
+  }
+}
+
+/* ---------- SISTEMA DE PREGUNTAS ---------- */
+function triggerQuestion(){
+  if(questionIndex >= 15) return;
+  currentState = STATE.QUESTION;
+  answerLocked = false;
+  activeQuestion = questionQueue[questionIndex];
+  level = Math.min(5, Math.floor(questionIndex/3)+1);
+
+  $('qTopic').textContent = 'Tema: ' + activeQuestion.topic;
+  $('qNum').textContent = 'Pregunta ' + (questionIndex+1) + '/15';
+  const diffEl = $('qDiff');
+  diffEl.textContent = activeQuestion.difficulty;
+  diffEl.className = 'diff-tag diff-' + activeQuestion.difficulty;
+  $('qText').textContent = activeQuestion.question;
+
+  const optsWrap = $('qOptions');
+  optsWrap.innerHTML = '';
+
+  if(activeQuestion.type === 'open'){
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'openAnswerInput';
+    input.className = 'open-answer-input';
+    input.placeholder = 'Escribe tu respuesta aquí...';
+    input.autocomplete = 'off';
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    btn.style.width = '100%';
+    btn.style.marginTop = '10px';
+    btn.textContent = 'VERIFICAR RESPUESTA';
+    btn.onclick = ()=> answerOpenQuestion(input.value, input);
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); answerOpenQuestion(input.value, input); } });
+    optsWrap.appendChild(input);
+    optsWrap.appendChild(btn);
+    $('modalQuestion').classList.add('active');
+    setTimeout(()=> input.focus(), 50);
+  } else {
+    activeQuestion.options.forEach((opt, idx)=>{
+      const b = document.createElement('button');
+      b.className = 'opt-btn';
+      b.textContent = opt;
+      b.onclick = ()=> answerQuestion(idx, b);
+      optsWrap.appendChild(b);
+    });
+    $('modalQuestion').classList.add('active');
+  }
+}
+
+function answerQuestion(idx, btnEl){
+  if(answerLocked) return;
+  answerLocked = true;
+  const q = activeQuestion;
+  const isCorrect = idx === q.correct;
+  const allBtns = $('qOptions').querySelectorAll('.opt-btn');
+  allBtns.forEach((b,i)=>{
+    b.disabled = true;
+    if(i===q.correct) b.classList.add('correct');
+    else if(i===idx && !isCorrect) b.classList.add('wrong');
+  });
+  setTimeout(()=>{ $('modalQuestion').classList.remove('active'); showFeedback(isCorrect); }, 650);
+}
+
+function answerOpenQuestion(rawValue, inputEl){
+  if(answerLocked) return;
+  answerLocked = true;
+  const q = activeQuestion;
+  const nums = (rawValue.match(/-?\d+(\.\d+)?/g) || []).map(Number);
+  let isCorrect = nums.length === q.answerNumbers.length &&
+    nums.every((n,i)=> Math.abs(n - q.answerNumbers[i]) < 0.01);
+  inputEl.disabled = true;
+  const buttons = $('qOptions').querySelectorAll('button');
+  buttons.forEach(b=> b.disabled = true);
+  inputEl.style.borderColor = isCorrect ? 'var(--ok)' : 'var(--danger)';
+  setTimeout(()=>{ $('modalQuestion').classList.remove('active'); showFeedback(isCorrect); }, 500);
+}
+
+function showFeedback(isCorrect){
+  currentState = STATE.FEEDBACK;
+  const q = activeQuestion;
+  topicStats[q.topicGroup].total += 1;
+
+  if(isCorrect){
+    correctAnswers++; rawStreak++; streak++;
+    maxStreak = Math.max(maxStreak, rawStreak);
+    score = Math.min(100, score + q.points);
+    topicStats[q.topicGroup].correct += 1;
+    SFX.point();
+    $('fbIcon').textContent='✓'; $('fbIcon').style.color='var(--ok)';
+    $('fbTitle').textContent='RESPUESTA CORRECTA'; $('fbTitle').className='fb-title ok';
+    $('fbDelta').textContent = '+' + q.points + ' PUNTOS';
+    $('fbCorrectLine').innerHTML='';
+    showToast('+'+q.points, 'plus');
+
+    if(streak >= 3){
+      streak = 0;
+      if(lives < 4){ lives++; showToast('🔥 RACHA x3 · +1 ❤️', 'streak'); SFX.streak(); }
+      else { showToast('🔥 RACHA x3 · VIDAS AL MÁXIMO', 'streak'); }
+    }
+  } else {
+    wrongAnswers++; rawStreak=0; streak=0;
+    lives = Math.max(0, lives-1);
+    SFX.error();
+    $('fbIcon').textContent='✗'; $('fbIcon').style.color='var(--danger)';
+    $('fbTitle').textContent='RESPUESTA INCORRECTA'; $('fbTitle').className='fb-title bad';
+    $('fbDelta').textContent = '−1 VIDA';
+    $('fbCorrectLine').innerHTML = '<div class="correct-answer-line">Respuesta correcta: '+(q.type==='open' ? q.correctDisplay : q.options[q.correct])+'</div>';
+    showToast('-1 ❤️', 'minus');
+  }
+  $('fbConcept').textContent = q.concept;
+  $('fbExplanation').textContent = q.explanation;
+  updateHUD();
+  $('modalFeedback').classList.add('active');
+}
+
+$('btnContinueRace').onclick = continueAfterFeedback;
+function continueAfterFeedback(){
+  $('modalFeedback').classList.remove('active');
+  questionIndex++;
+
+  if(lives <= 0){
+    endGame(false);
+    return;
+  }
+  if(questionIndex >= 15){
+    endGame(true);
+    return;
+  }
+  const justFinishedLevel = questionIndex % 3 === 0;
+  if(justFinishedLevel){
+    const newLevel = Math.min(5, Math.floor(questionIndex/3)+1);
+    level = newLevel;
+    showLevelUp(newLevel);
+  } else {
+    resumeRace();
+  }
+}
+
+function showLevelUp(newLevel){
+  currentState = STATE.LEVEL_UP;
+  SFX.levelUp();
+  $('levelUpText').textContent = 'Avanzas al NIVEL ' + newLevel + ' de la ruta de optimización.';
+  $('modalLevelUp').classList.add('active');
+}
+$('btnLevelUpContinue').onclick = ()=>{ $('modalLevelUp').classList.remove('active'); resumeRace(); };
+
+function resumeRace(){
+  currentState = STATE.PLAYING;
+  obstacles = [];
+  spawnTimer = 1.1; // pequeño respiro antes de que vuelvan a aparecer obstáculos
+  invulnerableUntil = gameTime + 1.6; // inmunidad temporal tras la pregunta
+  updateHUD(); renderRouteMap();
+}
+
+/* ---------- HUD ---------- */
+function updateHUD(){
+  $('hud-lives').innerHTML = '❤️'.repeat(lives) + '<span class="lost">'+'❤️'.repeat(4-lives)+'</span>';
+  $('hud-score').textContent = score;
+  $('hud-time').textContent = fmtTime(gameTime);
+  $('hud-level').textContent = level;
+  $('hud-streak').textContent = rawStreak;
+  $('miniFormula').textContent = LEVEL_FORMULAS[level-1];
+  $('progressFill').style.width = (questionIndex/15*100) + '%';
+}
+function renderRouteMap(){
+  const activeIdx = Math.min(6, level); // 0..6 aprox
+  $('routeMap').innerHTML = ROUTE_LABELS.map((l,i)=>{
+    const on = (i===0 && questionIndex===0) || (i===level && questionIndex<15) || (i===6 && questionIndex>=15);
+    return '<span class="'+(on?'on':'')+'">'+l+'</span>';
+  }).join('');
+}
+let toastTimer=null;
+function showToast(text, cls){
+  const t = $('toast');
+  t.textContent = text;
+  t.className = 'toast show ' + cls;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 1200);
+}
+
+/* ---------- PAUSA ---------- */
+$('btnPause').onclick = togglePause;
+function togglePause(){
+  if(currentState !== STATE.PLAYING) return;
+  currentState = STATE.PAUSED; gamePaused = true;
+  $('modalPause').classList.add('active');
+}
+$('btnResume').onclick = ()=>{ $('modalPause').classList.remove('active'); currentState=STATE.PLAYING; gamePaused=false; lastFrameTime=performance.now(); };
+$('btnRestartFromPause').onclick = ()=>{ $('modalPause').classList.remove('active'); resetGame(); startGame(); };
+$('btnExitToMenu').onclick = ()=>{ $('modalPause').classList.remove('active'); gameRunning=false; currentState=STATE.MENU; showScreen('screen-menu'); };
+
+/* ---------- SONIDO ---------- */
+$('soundToggle').onclick = ()=>{
+  soundOn = !soundOn;
+  $('soundToggle').textContent = soundOn ? '🔊 Sonido ON' : '🔇 Sonido OFF';
+};
+
+/* ---------- FIN DEL JUEGO ---------- */
+function endGame(victory){
+  gameRunning = false;
+  currentState = victory ? STATE.VICTORY : STATE.GAME_OVER;
+  if(victory) SFX.victory(); else SFX.gameOver();
+  showResults(victory);
+}
+
+function showResults(victory){
+  currentState = STATE.RESULTS;
+  const pill = $('resultStatusPill');
+  pill.textContent = victory ? 'VICTORIA' : 'DERROTA';
+  pill.className = 'status-pill ' + (victory ? 'status-victoria' : 'status-derrota');
+
+  $('resultPlayerLine').textContent = 'Jugador: ' + playerName;
+  $('rScore').textContent = score + '/100';
+  $('rAnswered').textContent = questionIndex + '/15';
+  $('rCorrect').textContent = correctAnswers;
+  $('rWrong').textContent = wrongAnswers;
+  $('rLives').textContent = lives + '/4';
+  $('rStreak').textContent = maxStreak;
+  $('rTime').textContent = fmtTime(gameTime);
+  $('rLevel').textContent = level + '/5';
+  const totalAnswered = correctAnswers + wrongAnswers;
+  const accuracy = totalAnswered>0 ? Math.round(correctAnswers/totalAnswered*100) : 0;
+  $('rAccuracy').textContent = accuracy + '%';
+
+  const tbWrap = $('topicBreakdown');
+  tbWrap.innerHTML = Object.keys(topicStats).map(topic=>{
+    const s = topicStats[topic];
+    const pct = s.total>0 ? Math.round(s.correct/s.total*100) : 0;
+    return `<div class="topic-row">
+      <div class="lab"><span>${topic}</span><span class="num">${s.correct}/${s.total}</span></div>
+      <div class="topic-bar-track"><div class="topic-bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+
+  let msg;
+  if(score>=90) msg='Dominio avanzado. Demostraste un excelente manejo de los conceptos de optimización y su aplicación económica.';
+  else if(score>=75) msg='Buen dominio. Comprendes con solidez la mayoría de los conceptos de optimización y economía trabajados.';
+  else if(score>=60) msg='Dominio en desarrollo. Comprendes varios conceptos fundamentales, pero conviene reforzar la clasificación de puntos críticos y el uso de restricciones.';
+  else msg='Necesita reforzar conceptos. Te recomendamos repasar derivadas parciales, puntos críticos y el procedimiento de Lagrange antes de volver a intentar la carrera.';
+  $('perfMessage').textContent = msg;
+
+  showScreen('screen-results');
+}
+
+$('btnPlayAgain').onclick = ()=>{ resetGame(); startGame(); };
+$('btnBackToMenu').onclick = ()=>{ currentState=STATE.MENU; showScreen('screen-menu'); };
+
+/* ---------- DIBUJO DEL JUEGO (CANVAS) ---------- */
+function drawGame(){
+  ctx.clearRect(0,0,CW,CH);
+
+  // fondo / paisaje lateral
+  const skyGrad = ctx.createLinearGradient(0,0,0,CH);
+  skyGrad.addColorStop(0,'#0b1120'); skyGrad.addColorStop(1,'#141a2c');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0,0,CW,CH);
+
+  ctx.fillStyle = '#0f1626';
+  ctx.fillRect(0,0,ROAD_LEFT,CH);
+  ctx.fillRect(ROAD_RIGHT,0,CW-ROAD_RIGHT,CH);
+
+  drawScenery();
+
+  // carretera
+  ctx.fillStyle = '#1b1f2a';
+  ctx.fillRect(ROAD_LEFT,0,ROAD_W,CH);
+
+  // bordes
+  ctx.fillStyle = '#2b3145';
+  ctx.fillRect(ROAD_LEFT-6,0,6,CH);
+  ctx.fillRect(ROAD_RIGHT,0,6,CH);
+
+  // líneas de carril (desplazándose)
+  ctx.strokeStyle = 'rgba(232,236,247,0.35)';
+  ctx.lineWidth = 4;
+  ctx.setLineDash([26,22]);
+  for(let i=1;i<LANES;i++){
+    const x = ROAD_LEFT + ROAD_W*i/LANES;
+    ctx.beginPath();
+    ctx.lineDashOffset = -roadOffset;
+    ctx.moveTo(x,0); ctx.lineTo(x,CH);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // obstáculos
+  for(const o of obstacles){ drawObstacle(o); }
+
+  // jugador
+  const isInvulnerable = gameTime < invulnerableUntil;
+  if(!isInvulnerable || Math.floor(gameTime*10)%2===0){
+    drawCar(player.x, player.y, player.w, player.h, '#33e0ff', true);
+  }
+}
+
+function drawScenery(){
+  ctx.fillStyle = 'rgba(139,147,176,0.35)';
+  ctx.font = '13px monospace';
+  for(const f of floaters){
+    let y = ( (f.y*CH) + roadOffset*f.sp ) % (CH+40) - 20;
+    const x = f.x*CW;
+    ctx.fillText(f.sym, x, y);
+  }
+  // árboles / postes simples a los lados
+  ctx.fillStyle = '#1c2338';
+  const spacing = 140;
+  const offset = roadOffset % spacing;
+  for(let y=-spacing; y<CH+spacing; y+=spacing){
+    const yy = y + offset;
+    drawTree(ROAD_LEFT-34, yy);
+    drawTree(ROAD_RIGHT+34, yy);
+  }
+}
+function drawTree(x,y){
+  ctx.fillStyle = '#232a42';
+  ctx.fillRect(x-3,y,6,20);
+  ctx.beginPath();
+  ctx.fillStyle = '#1f4d3a';
+  ctx.moveTo(x,y-28); ctx.lineTo(x-16,y); ctx.lineTo(x+16,y);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawCar(x,y,w,h,color,isPlayer){
+  ctx.save();
+  ctx.translate(x,y);
+  // sombra
+  ctx.fillStyle='rgba(0,0,0,0.35)';
+  ctx.beginPath(); ctx.ellipse(0,h/2+4,w/2,7,0,0,Math.PI*2); ctx.fill();
+  // cuerpo
+  const grad = ctx.createLinearGradient(0,-h/2,0,h/2);
+  grad.addColorStop(0, color); grad.addColorStop(1,'#0c0f18');
+  ctx.fillStyle = grad;
+  roundRect(-w/2,-h/2,w,h,10); ctx.fill();
+  // cabina
+  ctx.fillStyle = 'rgba(8,12,20,0.75)';
+  roundRect(-w/2+7,-h/2+12,w-14,h*0.4,6); ctx.fill();
+  // luces
+  ctx.fillStyle = isPlayer ? '#eafcff' : '#2a0f0f';
+  ctx.fillRect(-w/2+4,-h/2+2,8,5);
+  ctx.fillRect(w/2-12,-h/2+2,8,5);
+  ctx.fillStyle = '#ff4d5e';
+  ctx.fillRect(-w/2+4,h/2-7,8,5);
+  ctx.fillRect(w/2-12,h/2-7,8,5);
+  if(isPlayer){
+    ctx.shadowColor = color; ctx.shadowBlur = 14;
+    ctx.strokeStyle = color; ctx.lineWidth=1.5;
+    roundRect(-w/2,-h/2,w,h,10); ctx.stroke();
+  }
+  ctx.restore();
+}
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function drawObstacle(o){
+  if(o.type==='cone'){
+    ctx.save(); ctx.translate(o.x,o.y);
+    ctx.fillStyle='#ff8c1a';
+    ctx.beginPath(); ctx.moveTo(0,-o.h/2); ctx.lineTo(o.w/2,o.h/2); ctx.lineTo(-o.w/2,o.h/2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.fillRect(-o.w/2,o.h*0.05,o.w,5);
+    ctx.restore();
+    return;
+  }
+  if(o.type==='barrier'){
+    ctx.save(); ctx.translate(o.x,o.y);
+    ctx.fillStyle='#e8ecf7';
+    roundRect(-o.w/2,-o.h/2,o.w,o.h,4); ctx.fill();
+    ctx.fillStyle='#ff4d5e';
+    for(let i=-o.w/2; i<o.w/2; i+=16){ ctx.fillRect(i,-o.h/2,8,o.h); }
+    ctx.restore();
+    return;
+  }
+  if(o.type==='block'){
+    ctx.save(); ctx.translate(o.x,o.y);
+    ctx.fillStyle='#4a5170';
+    roundRect(-o.w/2,-o.h/2,o.w,o.h,6); ctx.fill();
+    ctx.restore();
+    return;
+  }
+  // car / truck
+  drawCar(o.x,o.y,o.w,o.h,o.color,false);
+}
+
+/* ---------- INICIALIZACIÓN ---------- */
+resetGame();
+</script>
+</body>
+</html>
